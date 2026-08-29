@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparador de Preços</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Comparador">
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+    --azul:#2563eb;
+    --azul-escuro:#1e3a8a;
+    --roxo:#7c3aed;
+    --fundo:#f3f6fb;
+    --texto:#1e293b;
+    --texto-suave:#64748b;
+    --branco:#fff;
+    --verde:#16a34a;
+    --borda:#e2e8f0;
+    --sombra:0 10px 30px rgba(15,23,42,.08);
+    --sombra-forte:0 15px 40px rgba(15,23,42,.13);
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:linear-gradient(135deg,#eef4ff 0%,#f7f3ff 50%,#f4f7fb 100%);
+    color:var(--texto);
+    min-height:100vh;
+}
+
+header{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 45%,#7c3aed 100%);
+    color:#fff;
+    padding:38px 20px 42px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(30,58,138,.25);
+}
+
+header::before,header::after{
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+}
+header::before{width:250px;height:250px;top:-130px;left:-70px}
+header::after{width:300px;height:300px;right:-100px;bottom:-170px}
+
+header h1,header p{position:relative;z-index:1}
+header h1{margin:0 0 10px;font-size:34px;font-weight:800}
+header p{margin:0;font-size:16px;color:rgba(255,255,255,.88)}
+
+nav{
+    position:relative;
+    z-index:10;
+    max-width:1050px;
+    margin:-20px auto 0;
+    padding:10px;
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:8px;
+    background:rgba(255,255,255,.96);
+    border:1px solid rgba(255,255,255,.8);
+    border-radius:16px;
+    box-shadow:0 12px 30px rgba(15,23,42,.10);
+}
+
+nav button{
+    border:none;
+    background:transparent;
+    color:#475569;
+    padding:12px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+    transition:.2s;
+}
+nav button:hover{color:var(--azul);background:#eff6ff;transform:translateY(-1px)}
+
+main{width:100%;max-width:1100px;margin:35px auto;padding:0 18px}
+
+.tela{display:none}
+.tela.ativa{display:block;animation:aparecer .25s ease}
+
+@keyframes aparecer{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+.card{
+    background:rgba(255,255,255,.96);
+    padding:28px;
+    border:1px solid rgba(226,232,240,.9);
+    border-radius:18px;
+    margin-bottom:22px;
+    box-shadow:var(--sombra);
+}
+
+.card:hover{box-shadow:var(--sombra-forte)}
+
+h2{margin:0 0 22px;color:#1e40af;font-size:24px;font-weight:800}
+
+.formulario{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+}
+
+.campo{display:flex;flex-direction:column}
+.campo label{font-weight:700;font-size:14px;color:#334155;margin-bottom:8px}
+
+input,select{
+    width:100%;
+    padding:14px 15px;
+    border:1px solid #cbd5e1;
+    border-radius:10px;
+    background:#f8fafc;
+    color:#1e293b;
+    font-size:16px;
+    outline:none;
+    transition:.2s;
+}
+input:focus,select:focus{
+    background:#fff;
+    border-color:var(--azul);
+    box-shadow:0 0 0 4px rgba(37,99,235,.10);
+}
+input::placeholder{color:#94a3b8}
+
+.botao{
+    border:none;
+    background:linear-gradient(135deg,#2563eb,#4f46e5);
+    color:#fff;
+    padding:13px 20px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+    box-shadow:0 5px 15px rgba(37,99,235,.20);
+    transition:.2s;
+}
+.botao:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,235,.28)}
+.botao:active{transform:translateY(0)}
+.botao-perigo{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.botao-perigo:hover{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+.botao-verde{background:linear-gradient(135deg,#22c55e,#16a34a)}
+
+.lista{display:grid;gap:12px}
+
+.item{
+    border:1px solid var(--borda);
+    padding:16px;
+    border-radius:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    background:#f8fafc;
+    transition:.2s;
+}
+.item:hover{background:#fff;border-color:#bfdbfe;transform:translateY(-1px)}
+.item strong{font-size:15px}
+.item-acoes{display:flex;gap:8px}
+
+.resumo{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+}
+.resumo-card{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#eff6ff,#eef2ff);
+    padding:22px;
+    border:1px solid #dbeafe;
+    border-radius:15px;
+    text-align:center;
+    color:#475569;
+    font-size:14px;
+    font-weight:700;
+}
+.resumo-card::after{
+    content:"";
+    position:absolute;
+    width:80px;height:80px;
+    border-radius:50%;
+    background:rgba(124,58,237,.08);
+    right:-30px;bottom:-30px;
+}
+.resumo-card strong{
+    position:relative;
+    z-index:1;
+    display:block;
+    font-size:32px;
+    color:#2563eb;
+    margin-top:10px;
+}
+
+.tabela-container{width:100%;overflow-x:auto}
+
+table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    margin-top:15px;
+    overflow:hidden;
+    border:1px solid var(--borda);
+    border-radius:12px;
+}
+th,td{
+    padding:14px 12px;
+    border-bottom:1px solid #e2e8f0;
+    text-align:left;
+    vertical-align:middle;
+}
+th{
+    background:linear-gradient(135deg,#eff6ff,#eef2ff);
+    color:#1e40af;
+    font-size:14px;
+    font-weight:800;
+}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8fafc}
+
+.menor-preco{
+    background:linear-gradient(90deg,#ecfdf3,#f0fdf4);
+}
+.menor-preco td{font-weight:700}
+
+.resultado-menor{
+    margin-top:20px;
+    padding:20px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#ecfdf3,#f0fdf4);
+    border:1px solid #86efac;
+    color:#166534;
+    font-size:19px;
+    font-weight:800;
+    box-shadow:0 6px 20px rgba(22,163,74,.08);
+}
+
+.vazio{
+    color:var(--texto-suave);
+    text-align:center;
+    padding:25px;
+    background:#f8fafc;
+    border:1px dashed #cbd5e1;
+    border-radius:12px;
+}
+
+footer{text-align:center;padding:35px 20px;color:#64748b;font-size:14px}
+
+@media(max-width:700px){
+    header{padding:30px 18px 35px}
+    header h1{font-size:25px}
+    header p{font-size:14px;line-height:1.5}
+
+    nav{margin:-15px 12px 0;padding:8px;border-radius:14px;gap:6px}
+    nav button{flex:1 1 45%;padding:12px 8px;font-size:13px}
+
+    main{margin:25px auto;padding:0 12px}
+    .card{padding:20px 17px;border-radius:15px}
+    h2{font-size:22px;line-height:1.3}
+
+    .formulario{grid-template-columns:1fr;gap:15px}
+    input,select{padding:14px;font-size:16px}
+    .botao{width:100%;padding:14px}
+
+    .resumo{grid-template-columns:1fr;gap:12px}
+    .resumo-card{padding:18px}
+    .resumo-card strong{font-size:30px}
+
+    .item{flex-direction:column;align-items:stretch}
+    .item-acoes{width:100%}
+    .item-acoes button{flex:1}
+
+    .tabela-container{overflow-x:visible}
+    table{width:100%;table-layout:fixed}
+    th,td{padding:10px 6px;font-size:13px;vertical-align:middle;word-break:normal}
+
+    #listaPrecos table th,#listaPrecos table td{
+        font-size:12px;
+        padding:8px 5px;
+    }
+
+    .resultado-menor{font-size:17px;padding:17px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🛒 Comparador de Preços</h1>
+    <p>Compare preços e descubra onde sua compra fica mais barata.</p>
+</header>
+
+<nav>
+    <button onclick="mostrarTela('inicio')">🏠 Início</button>
+    <button onclick="mostrarTela('supermercados')">🏪 Supermercados</button>
+    <button onclick="mostrarTela('produtos')">📦 Produtos</button>
+    <button onclick="mostrarTela('precos')">💰 Preços</button>
+    <button onclick="mostrarTela('comparar')">📊 Comparar</button>
+</nav>
+
+<main>
+
+<section id="inicio" class="tela ativa">
+    <div class="card">
+        <h2>👋 Bem-vindo ao Comparador</h2>
+        <p>Cadastre seus supermercados, produtos e preços.</p>
+        <p>Depois escolha um produto e descubra rapidamente onde ele está mais barato.</p>
+    </div>
+
+    <div class="resumo">
+        <div class="resumo-card">🏪 Supermercados<strong id="totalSupermercados">0</strong></div>
+        <div class="resumo-card">📦 Produtos<strong id="totalProdutos">0</strong></div>
+        <div class="resumo-card">💰 Preços cadastrados<strong id="totalPrecos">0</strong></div>
+    </div>
+</section>
+
+<section id="supermercados" class="tela">
+    <div class="card">
+        <h2>🏪 Cadastro de Supermercado</h2>
+        <div class="formulario">
+            <div class="campo">
+                <label for="nomeSupermercado">Nome do supermercado</label>
+                <input type="text" id="nomeSupermercado" placeholder="Ex.: Atacadão">
+            </div>
+        </div>
+        <br>
+        <button class="botao" onclick="cadastrarSupermercado()">+ Cadastrar supermercado</button>
+    </div>
+
+    <div class="card">
+        <h2>📋 Supermercados cadastrados</h2>
+        <div id="listaSupermercados" class="lista"></div>
+    </div>
+</section>
+
+<section id="produtos" class="tela">
+    <div class="card">
+        <h2>📦 Cadastro de Produto</h2>
+        <div class="formulario">
+            <div class="campo">
+                <label for="nomeProduto">Nome do produto</label>
+                <input type="text" id="nomeProduto" placeholder="Ex.: Arroz 5 kg">
+            </div>
+        </div>
+        <br>
+        <button class="botao" onclick="cadastrarProduto()">+ Cadastrar produto</button>
+    </div>
+
+    <div class="card">
+        <h2>📋 Produtos cadastrados</h2>
+        <div id="listaProdutos" class="lista"></div>
+    </div>
+</section>
+
+<section id="precos" class="tela">
+    <div class="card">
+        <h2>💰 Cadastro de Preço</h2>
+
+        <div class="formulario">
+            <div class="campo">
+                <label for="selectSupermercado">Supermercado</label>
+                <select id="selectSupermercado">
+                    <option value="">Selecione o supermercado</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="selectProduto">Produto</label>
+                <select id="selectProduto">
+                    <option value="">Selecione o produto</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="valorPreco">Preço</label>
+                <input type="number" id="valorPreco" placeholder="Ex.: 29,90" step="0.01" min="0">
+            </div>
+        </div>
+
+        <br>
+        <button class="botao" onclick="cadastrarPreco()">+ Cadastrar preço</button>
+    </div>
+
+    <div class="card">
+        <h2>📋 Preços cadastrados</h2>
+        <div id="listaPrecos" class="tabela-container"></div>
+    </div>
+</section>
+
+<section id="comparar" class="tela">
+    <div class="card">
+        <h2>📊 Comparar preços</h2>
+
+        <div class="campo">
+            <label for="produtoComparacao">Escolha o produto</label>
+            <select id="produtoComparacao" onchange="compararProduto()">
+                <option value="">Selecione um produto</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="resultadoComparacao" class="card">
+        <p class="vazio">🔎 Selecione um produto para começar a comparação.</p>
+    </div>
+</section>
+
+</main>
+
+<footer>🛒 Comparador de Preços</footer>
+
+<script>
+let supermercados=JSON.parse(localStorage.getItem("supermercados"))||[];
+let produtos=JSON.parse(localStorage.getItem("produtos"))||[];
+let precos=JSON.parse(localStorage.getItem("precos"))||[];
+
+function salvarDados(){
+    localStorage.setItem("supermercados",JSON.stringify(supermercados));
+    localStorage.setItem("produtos",JSON.stringify(produtos));
+    localStorage.setItem("precos",JSON.stringify(precos));
+}
+
+function mostrarTela(id){
+    document.querySelectorAll(".tela").forEach(tela=>tela.classList.remove("ativa"));
+    document.getElementById(id).classList.add("ativa");
+    atualizarTudo();
+}
+
+function cadastrarSupermercado(){
+    const campo=document.getElementById("nomeSupermercado");
+    const nome=campo.value.trim();
+
+    if(!nome){
+        alert("Digite o nome do supermercado.");
+        return;
+    }
+
+    const existe=supermercados.some(s=>s.nome.toLowerCase()===nome.toLowerCase());
+
+    if(existe){
+        alert("Esse supermercado já está cadastrado.");
+        return;
+    }
+
+    supermercados.push({id:Date.now(),nome});
+    salvarDados();
+    campo.value="";
+    atualizarTudo();
+    alert("Supermercado cadastrado com sucesso.");
+}
+
+function cadastrarProduto(){
+    const campo=document.getElementById("nomeProduto");
+    const nome=campo.value.trim();
+
+    if(!nome){
+        alert("Digite o nome do produto.");
+        return;
+    }
+
+    const existe=produtos.some(p=>p.nome.toLowerCase()===nome.toLowerCase());
+
+    if(existe){
+        alert("Esse produto já está cadastrado.");
+        return;
+    }
+
+    produtos.push({id:Date.now(),nome});
+    salvarDados();
+    campo.value="";
+    atualizarTudo();
+    alert("Produto cadastrado com sucesso.");
+}
+
+function cadastrarPreco(){
+    const supermercadoId=document.getElementById("selectSupermercado").value;
+    const produtoId=document.getElementById("selectProduto").value;
+    const valor=parseFloat(document.getElementById("valorPreco").value);
+
+    if(supermercadoId===""||produtoId===""||isNaN(valor)||valor<0){
+        alert("Preencha supermercado, produto e preço.");
+        return;
+    }
+
+    const existente=precos.find(p=>
+        p.supermercadoId==supermercadoId &&
+        p.produtoId==produtoId
+    );
+
+    if(existente){
+        existente.valor=valor;
+        alert("O preço desse produto foi atualizado.");
+    }else{
+        precos.push({
+            id:Date.now(),
+            supermercadoId:Number(supermercadoId),
+            produtoId:Number(produtoId),
+            valor
+        });
+        alert("Preço cadastrado com sucesso.");
+    }
+
+    salvarDados();
+    document.getElementById("valorPreco").value="";
+    atualizarTudo();
+}
+
+function excluirSupermercado(id){
+    if(!confirm("Deseja realmente excluir este supermercado?"))return;
+
+    supermercados=supermercados.filter(s=>s.id!==id);
+    precos=precos.filter(p=>p.supermercadoId!==id);
+
+    salvarDados();
+    atualizarTudo();
+}
+
+function excluirProduto(id){
+    if(!confirm("Deseja realmente excluir este produto?"))return;
+
+    produtos=produtos.filter(p=>p.id!==id);
+    precos=precos.filter(p=>p.produtoId!==id);
+
+    salvarDados();
+    atualizarTudo();
+}
+
+function excluirPreco(id){
+    if(!confirm("Deseja excluir este preço?"))return;
+
+    precos=precos.filter(p=>p.id!==id);
+
+    salvarDados();
+    atualizarTudo();
+}
+
+function atualizarSupermercados(){
+    const lista=document.getElementById("listaSupermercados");
+
+    if(!supermercados.length){
+        lista.innerHTML='<p class="vazio">🏪 Nenhum supermercado cadastrado.</p>';
+        return;
+    }
+
+    lista.innerHTML="";
+
+    supermercados.forEach(s=>{
+        lista.innerHTML+=`
+            <div class="item">
+                <strong>🏪 ${s.nome}</strong>
+                <div class="item-acoes">
+                    <button class="botao botao-perigo" onclick="excluirSupermercado(${s.id})">Excluir</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function atualizarProdutos(){
+    const lista=document.getElementById("listaProdutos");
+
+    if(!produtos.length){
+        lista.innerHTML='<p class="vazio">📦 Nenhum produto cadastrado.</p>';
+        return;
+    }
+
+    lista.innerHTML="";
+
+    produtos.forEach(p=>{
+        lista.innerHTML+=`
+            <div class="item">
+                <strong>📦 ${p.nome}</strong>
+                <div class="item-acoes">
+                    <button class="botao botao-perigo" onclick="excluirProduto(${p.id})">Excluir</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function atualizarSelects(){
+    const selectSupermercado=document.getElementById("selectSupermercado");
+    const selectProduto=document.getElementById("selectProduto");
+    const comparacao=document.getElementById("produtoComparacao");
+
+    selectSupermercado.innerHTML='<option value="">Selecione o supermercado</option>';
+    supermercados.forEach(s=>{
+        selectSupermercado.innerHTML+=`<option value="${s.id}">${s.nome}</option>`;
+    });
+
+    selectProduto.innerHTML='<option value="">Selecione o produto</option>';
+    produtos.forEach(p=>{
+        selectProduto.innerHTML+=`<option value="${p.id}">${p.nome}</option>`;
+    });
+
+    comparacao.innerHTML='<option value="">Selecione um produto</option>';
+    produtos.forEach(p=>{
+        comparacao.innerHTML+=`<option value="${p.id}">${p.nome}</option>`;
+    });
+}
+
+function atualizarPrecos(){
+    const lista=document.getElementById("listaPrecos");
+
+    if(!precos.length){
+        lista.innerHTML='<p class="vazio">💰 Nenhum preço cadastrado.</p>';
+        return;
+    }
+
+    let tabela=`
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Supermercado</th>
+                    <th>Preço</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    precos.forEach(preco=>{
+        const produto=produtos.find(p=>p.id===preco.produtoId);
+        const supermercado=supermercados.find(s=>s.id===preco.supermercadoId);
+
+        if(!produto||!supermercado)return;
+
+        tabela+=`
+            <tr>
+                <td>📦 ${produto.nome}</td>
+                <td>🏪 ${supermercado.nome}</td>
+                <td><strong>R$ ${preco.valor.toFixed(2).replace(".",",")}</strong></td>
+                <td>
+                    <button class="botao botao-perigo" onclick="excluirPreco(${preco.id})">Excluir</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tabela+=`</tbody></table>`;
+    lista.innerHTML=tabela;
+}
+
+function compararProduto(){
+    const produtoId=Number(document.getElementById("produtoComparacao").value);
+    const resultado=document.getElementById("resultadoComparacao");
+
+    if(!produtoId){
+        resultado.innerHTML='<p class="vazio">🔎 Selecione um produto para começar a comparação.</p>';
+        return;
+    }
+
+    const produto=produtos.find(p=>p.id===produtoId);
+
+    let precosProduto=precos.filter(p=>p.produtoId===produtoId);
+
+    if(!precosProduto.length){
+        resultado.innerHTML=`
+            <p class="vazio">
+                Ainda não existem preços cadastrados para <strong>${produto.nome}</strong>.
+            </p>
+        `;
+        return;
+    }
+
+    precosProduto=[...precosProduto].sort((a,b)=>a.valor-b.valor);
+    const menorPreco=precosProduto[0].valor;
+
+    let tabela=`
+        <h2>📊 Comparação: ${produto.nome}</h2>
+
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Supermercado</th>
+                        <th>Preço</th>
+                        <th>Situação</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    precosProduto.forEach(preco=>{
+        const supermercado=supermercados.find(s=>s.id===preco.supermercadoId);
+        const menor=preco.valor===menorPreco;
+
+        tabela+=`
+            <tr class="${menor?"menor-preco":""}">
+                <td>🏪 ${supermercado?supermercado.nome:"Supermercado"}</td>
+                <td><strong>R$ ${preco.valor.toFixed(2).replace(".",",")}</strong></td>
+                <td>${menor?"🏆 MENOR PREÇO":"—"}</td>
+            </tr>
+        `;
+    });
+
+    tabela+=`
+                </tbody>
+            </table>
+        </div>
+
+        <div class="resultado-menor">
+            🏆 Melhor preço: R$ ${menorPreco.toFixed(2).replace(".",",")}
+        </div>
+    `;
+
+    resultado.innerHTML=tabela;
+}
+
+function atualizarResumo(){
+    document.getElementById("totalSupermercados").textContent=supermercados.length;
+    document.getElementById("totalProdutos").textContent=produtos.length;
+    document.getElementById("totalPrecos").textContent=precos.length;
+}
+
+function atualizarTudo(){
+    atualizarSupermercados();
+    atualizarProdutos();
+    atualizarSelects();
+    atualizarPrecos();
+    atualizarResumo();
+}
+
+atualizarTudo();
+</script>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./service-worker.js")
+            .catch(function (erro) {
+                console.log("Service Worker não foi registrado:", erro);
+            });
+    });
+}
+</script>
+
+</body>
+</html>
